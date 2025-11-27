@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busca Escolar Real (São Sebastião)</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #eef2f3; padding: 20px; text-align: center; }
+        
+        .painel { 
+            background: white; max-width: 600px; margin: 0 auto; padding: 25px; 
+            border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+        }
+        
+        h2 { color: #2c3e50; margin-bottom: 5px; }
+        p { color: #7f8c8d; margin-top: 0; }
+
+        input { 
+            padding: 12px; width: 60%; font-size: 16px; border: 2px solid #ddd; 
+            border-radius: 8px; outline: none; transition: 0.3s;
+        }
+        input:focus { border-color: #007bff; }
+        
+        button { 
+            padding: 12px 25px; background: #007bff; color: white; border: none; 
+            cursor: pointer; font-size: 16px; border-radius: 8px; font-weight: bold;
+            transition: 0.3s;
+        }
+        button:hover { background: #0056b3; transform: translateY(-2px); }
+        
+        #mapa { 
+            height: 500px; width: 100%; margin-top: 25px; 
+            border-radius: 12px; border: 1px solid #ddd; display: none; z-index: 1; 
+        }
+
+        #status-box {
+            margin-top: 20px; padding: 15px; border-radius: 8px; 
+            text-align: left; display: none; font-size: 0.95em; line-height: 1.5;
+        }
+        .leaflet-routing-container { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="painel">
+    <h2>📡 Localizador Escolar (GPS Real)</h2>
+    <p>Insira seu CEP para localização via satélite.</p>
+    
+    <input type="text" id="cepInput" placeholder="Ex: 71691100" maxlength="9">
+    <button onclick="iniciarSistema()">Localizar</button>
+
+    <div id="status-box"></div>
+    <div id="mapa"></div>
+</div>
+
+<script>
+    // --- DADOS DAS ESCOLAS ---
+    const escolas = [
+        { nome: "CEM 01 (Centrão)", lat: -15.9015374, lng: -47.7794402 },
+        { nome: "CEI 03", lat: -15.9039391, lng: -47.7783892 },
+        { nome: "Escola Ceprom", lat: -15.9000604, lng: -47.7719123 },
+        { nome: "Colégio Modelo", lat: -15.9038388, lng: -47.7619481 },
+        { nome: "Escola Master", lat: -15.9077383, lng: -47.7619034 }
+    ];
+
+    let mapa, controleRota, camadaDesenhos, timeoutPlanoB;
+
+    async function iniciarSistema() {
+        const cep = document.getElementById('cepInput').value.replace(/\D/g, '');
+        const divStatus = document.getElementById('status-box');
+        
+        if (cep.length !== 8) { alert("CEP inválido"); return; }
+
+        divStatus.style.display = 'block';
+        divStatus.style.background = '#e2e3e5';
+        divStatus.innerHTML = '🛰️ <strong>Buscando coordenadas reais do CEP...</strong>';
+
+        try {
+            // --- PASSO 1: GEOLOCALIZAÇÃO REAL (Nominatim / OSM) ---
+            const coordenadas = await obterLatLonDoCep(cep);
+            
+            const latUser = parseFloat(coordenadas.lat);
+            const lngUser = parseFloat(coordenadas.lon); // Nominatim usa 'lon', não 'lng'
+
+            divStatus.innerHTML = `📍 <strong>Local encontrado:</strong> ${coordenadas.display_name.split(',')[0]}<br>Calculando rota para a escola mais próxima...`;
+
+            // --- PASSO 2: CÁLCULO DA ESCOLA MAIS PRÓXIMA ---
+            let escolaDestino = null;
+            let menorDistReta = Infinity;
+
+            escolas.forEach(esc => {
+                const d = getDistanciaReta(latUser, lngUser, esc.lat, esc.lng);
+                if (d < menorDistReta) { menorDistReta = d; escolaDestino = esc; }
+            });
+
+            // --- PASSO 3: INICIA O MAPA ---
+            iniciarMapa(latUser, lngUser, escolaDestino, menorDistReta);
+
+        } catch (erro) {
+            console.error(erro);
+            // Fallback de emergência (Centro de SS)
+            alert("Não foi possível achar esse CEP exato no mapa OpenSource. Usando centro de São Sebastião.");
+            iniciarMapa(-15.9050, -47.7700, escolas[0], 0);
+        }
+    }
+
+    // --- FUNÇÃO QUE BUSCA O CEP DE VERDADE ---
+    async function obterLatLonDoCep(cep) {
+        // Tenta API 1: Nominatim (OpenStreetMap)
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=Brazil+${cep}&limit=1`;
+            const resp = await fetch(url);
+            const dados = await resp.json();
+            
+            if (dados && dados.length > 0) {
+                return dados[0]; // Sucesso!
+            }
+        } catch(e) { console.log("Nominatim falhou, tentando BrasilAPI..."); }
+
+        // Tenta API 2: BrasilAPI (Backup)
+        const resp2 = await fetch(`https://brasilapi.com.br/api/cep/v2/${cep}`);
+        if (!resp2.ok) throw new Error("CEP não encontrado nas bases de dados.");
+        const dados2 = await resp2.json();
+        
+        if (!dados2.location || !dados2.location.coordinates) throw new Error("CEP sem coordenadas.");
+        
+        return {
+            lat: dados2.location.coordinates.latitude,
+            lon: dados2.location.coordinates.longitude,
+            display_name: dados2.street || "Endereço encontrado"
+        };
+    }
+
+    function iniciarMapa(latUser, lngUser, escolaDestino, distReta) {
+        const divMapa = document.getElementById('mapa');
+        divMapa.style.display = 'block';
+
+        if (!mapa) {
+            mapa = L.map('mapa').setView([latUser, lngUser], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(mapa);
+            camadaDesenhos = L.layerGroup().addTo(mapa);
+        } else {
+            camadaDesenhos.clearLayers();
+            if (controleRota) { try { mapa.removeControl(controleRota); } catch(e){} controleRota = null; }
+        }
+
+        // Pinos
+        const iconeCasa = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34] });
+        const iconeEscola = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34] });
+
+        L.marker([latUser, lngUser], {icon: iconeCasa}).addTo(camadaDesenhos).bindPopup("<b>Seu CEP</b>").openPopup();
+        L.marker([escolaDestino.lat, escolaDestino.lng], {icon: iconeEscola}).addTo(camadaDesenhos).bindPopup(`<b>${escolaDestino.nome}</b>`);
+
+        // Tenta traçar rota por rua (Plano A)
+        tentarRotaPorRua(latUser, lngUser, escolaDestino, distReta);
+    }
+
+    function tentarRotaPorRua(latUser, lngUser, escolaDestino, distReta) {
+        const divStatus = document.getElementById('status-box');
+        
+        // Timeout de 5 segundos para o servidor de rotas
+        timeoutPlanoB = setTimeout(() => {
+            usarLinhaReta(latUser, lngUser, escolaDestino, distReta, "Servidor de rotas demorou.");
+        }, 5000);
+
+        try {
+            controleRota = L.Routing.control({
+                waypoints: [ L.latLng(latUser, lngUser), L.latLng(escolaDestino.lat, escolaDestino.lng) ],
+                serviceUrl: 'https://router.project-osrm.org/route/v1',
+                lineOptions: { styles: [{color: '#007bff', opacity: 0.7, weight: 6}] },
+                createMarker: function() { return null; },
+                addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false
+            }).addTo(mapa);
+
+            controleRota.on('routesfound', function(e) {
+                clearTimeout(timeoutPlanoB);
+                const r = e.routes[0].summary;
+                divStatus.style.background = '#d4edda';
+                divStatus.style.color = '#155724';
+                divStatus.innerHTML = `
+                    ✅ <strong>Rota Confirmada:</strong><br>
+                    Indo para: <b>${escolaDestino.nome}</b><br>
+                    Distância real: ${(r.totalDistance/1000).toFixed(1)} km<br>
+                    Tempo estimado: ${Math.round(r.totalTime/60)} min
+                `;
+            });
+
+            controleRota.on('routingerror', function() {
+                clearTimeout(timeoutPlanoB);
+                usarLinhaReta(latUser, lngUser, escolaDestino, distReta, "Servidor de rotas indisponível.");
+            });
+        } catch (e) {
+            clearTimeout(timeoutPlanoB);
+            usarLinhaReta(latUser, lngUser, escolaDestino, distReta, "Erro interno.");
+        }
+    }
+
+    function usarLinhaReta(lat1, lng1, escola, dist, motivo) {
+        if (controleRota) { try { mapa.removeControl(controleRota); } catch(e){} controleRota = null; }
+        const divStatus = document.getElementById('status-box');
+        
+        divStatus.style.background = '#fff3cd';
+        divStatus.style.color = '#856404';
+        divStatus.innerHTML = `⚠️ <strong>Modo Básico:</strong> ${motivo} Exibindo linha reta.<br>Escola: <b>${escola.nome}</b>`;
+
+        const linha = L.polyline([[lat1, lng1], [escola.lat, escola.lng]], { color: 'red', dashArray: '10, 10', weight: 4 }).addTo(camadaDesenhos);
+        mapa.fitBounds(linha.getBounds(), {padding: [50, 50]});
+    }
+
+    function getDistanciaReta(lat1, lon1, lat2, lon2) {
+        const R = 6371; 
+        const a = Math.sin((lat2-lat1)*Math.PI/360)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin((lon2-lon1)*Math.PI/360)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+</script>
+
+</body>
+</html>

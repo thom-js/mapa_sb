@@ -15,7 +15,7 @@
         /* --- ESTILO GERAL --- */
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #eef2f3 0%, #8e9eab 100%); /* Cinza Metálico Neutro */
+            background: linear-gradient(135deg, #eef2f3 0%, #8e9eab 100%);
             margin: 0;
             height: 100vh;
             display: flex;
@@ -40,13 +40,13 @@
             z-index: 1000;
         }
 
-        /* --- ÁREA CENTRAL (SCROLLÁVEL SE PRECISAR) --- */
+        /* --- ÁREA CENTRAL --- */
         #main-wrapper {
             flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding-bottom: 50px; /* Espaço pro rodapé */
+            padding-bottom: 50px;
             overflow-y: auto;
             width: 100%;
         }
@@ -69,12 +69,11 @@
         .question-box.active { display: block; opacity: 1; transform: translateY(0); }
         .question-box.leaving { opacity: 0; transform: translateY(-10px); pointer-events: none; }
 
-        /* TIPOGRAFIA */
         h1 { font-size: 1.8rem; margin-bottom: 10px; color: #1a202c; font-weight: 700; }
         h2 { font-size: 1.25rem; margin-bottom: 25px; color: #4a5568; font-weight: 400; }
         p.intro { font-size: 0.95rem; color: #718096; margin-bottom: 30px; line-height: 1.5; }
 
-        /* --- BOTÕES DE OPÇÃO --- */
+        /* --- OPÇÕES --- */
         .options-grid { display: flex; flex-direction: column; gap: 12px; }
 
         .option-card {
@@ -104,7 +103,6 @@
             cursor: not-allowed; pointer-events: none;
         }
         
-        /* INPUTS */
         input {
             padding: 15px; font-size: 1.1rem; border-radius: 8px;
             border: 2px solid #cbd5e0; width: 60%; text-align: center;
@@ -112,21 +110,20 @@
         }
         input:focus { border-color: #3182ce; }
 
-        /* BOTÕES DE AÇÃO */
+        /* BOTÕES */
         .btn-nav {
             padding: 12px 30px; border-radius: 30px; font-size: 1rem; font-weight: bold;
             cursor: pointer; border: none; transition: 0.3s; margin-top: 20px;
         }
         .btn-next { background: #3182ce; color: white; }
         .btn-next:hover { background: #2c5282; transform: translateY(-2px); }
-        
         .btn-back {
             background: transparent; color: #718096; border: 1px solid #cbd5e0;
             margin-right: 10px; font-size: 0.9rem; padding: 10px 20px;
         }
         .btn-back:hover { background: #e2e8f0; color: #2d3748; }
 
-        /* --- TELA DE RESULTADO --- */
+        /* --- RESULTADO --- */
         #result-screen {
             display: none;
             background: #f7fafc;
@@ -152,8 +149,10 @@
         .data-value { font-weight: bold; color: #2d3748; }
 
         #mapa { height: 350px; width: 100%; border-radius: 10px; margin-top: 20px; border: 1px solid #cbd5e0; }
-        
         .loading { font-style: italic; color: #718096; font-size: 0.9rem; }
+
+        /* AQUI ESTÁ A CORREÇÃO: Esconde a caixa de instruções do mapa */
+        .leaflet-routing-container { display: none !important; }
     </style>
 </head>
 <body>
@@ -237,12 +236,11 @@
     </div>
 
     <div class="footer-fixed">
-        Protótipo v7.0 • Thomas J. Schrage<br>
+        Protótipo v7.1 • Thomas J. Schrage<br>
         APIs: Nominatim (Geocoding) & OSRM (Routing).
     </div>
 
 <script>
-    // --- BANCO DE DADOS ---
     const escolasDB = [
         { id: 1, nome: "CEM 01 (Centrão)", lat: -15.9015374, lng: -47.7794402, type: 'publica', levels: ['medio'] },
         { id: 2, nome: "CEF São José", lat: -15.9039391, lng: -47.7783892, type: 'publica', levels: ['fundamental'] },
@@ -252,35 +250,25 @@
         { id: 6, nome: "CED São Bartolomeu", lat: -15.915, lng: -47.765, type: 'publica', levels: ['fundamental', 'medio'] }
     ];
 
-    // --- CONTROLE DE FLUXO ---
     let totalFilhos = 1;
     let filhoAtual = 1;
     let dadosFilhos = [];
     let configTemp = {};
-    
-    // Histórico para o botão voltar (Pilha de IDs de tela)
     let historyStack = ['q1']; 
 
     function navigateTo(nextId) {
         const currentId = historyStack[historyStack.length - 1];
-        
-        // Esconde atual
         document.getElementById(currentId).classList.remove('active');
         document.getElementById(currentId).classList.add('leaving');
 
         setTimeout(() => {
             document.getElementById(currentId).style.display = 'none';
             document.getElementById(currentId).classList.remove('leaving');
-
-            // Mostra novo
             const nextEl = document.getElementById(nextId);
             nextEl.style.display = 'block';
-            
-            // Atualiza labels se for tela de filho
             if(nextId.startsWith('tpl-')) {
                 document.querySelectorAll('.lbl-num').forEach(span => span.innerText = filhoAtual);
             }
-
             setTimeout(() => nextEl.classList.add('active'), 50);
         }, 400);
 
@@ -289,26 +277,18 @@
 
     function goBack() {
         if (historyStack.length <= 1) return;
-        
-        const currentId = historyStack.pop(); // Remove atual
-        const prevId = historyStack[historyStack.length - 1]; // Pega o anterior
+        const currentId = historyStack.pop(); 
+        const prevId = historyStack[historyStack.length - 1]; 
 
-        // Lógica reversa de filhos
-        // Se estamos voltando do 'tpl-tipo' (início da config de um filho) para 'tpl-transporte' (fim do anterior)
         if (currentId === 'tpl-tipo' && prevId === 'tpl-transporte') {
             filhoAtual--;
-            dadosFilhos.pop(); // Remove dados salvos do último filho
-        }
-        // Se estamos voltando do CEP para Transporte
-        else if (currentId === 'q-cep' && prevId === 'tpl-transporte') {
-            // Não precisa decrementar filho, pois estamos no último ainda, só reabrindo config
-            dadosFilhos.pop(); // Remove o último salvo para reconfigurar
+            dadosFilhos.pop(); 
+        } else if (currentId === 'q-cep' && prevId === 'tpl-transporte') {
+            dadosFilhos.pop(); 
         }
 
-        // Transição visual de volta
         document.getElementById(currentId).classList.remove('active');
         document.getElementById(currentId).style.display = 'none';
-        
         const prevEl = document.getElementById(prevId);
         prevEl.style.display = 'block';
         if(prevId.startsWith('tpl-')) {
@@ -327,15 +307,12 @@
 
     function saveConfig(key, value) {
         configTemp[key] = value;
-
         if (key === 'tipo') navigateTo('tpl-nivel');
         else if (key === 'nivel') navigateTo('tpl-transporte');
         else if (key === 'transporte') {
-            // Fim da config deste filho
             configTemp.id = filhoAtual;
             dadosFilhos.push({...configTemp});
             configTemp = {};
-
             if (filhoAtual < totalFilhos) {
                 filhoAtual++;
                 navigateTo('tpl-tipo');
@@ -346,13 +323,10 @@
         }
     }
 
-    // --- CÁLCULO FINAL ---
     async function finalizar() {
         const cep = document.getElementById('inputCep').value.replace(/\D/g, '');
         if (cep.length !== 8) { alert('CEP inválido'); return; }
-
         document.getElementById('loading-msg').style.display = 'block';
-
         try {
             const coords = await obterLatLon(cep);
             renderizarResultados(coords.lat, coords.lon);
@@ -373,31 +347,23 @@
         return { lat: d2.location.coordinates.latitude, lon: d2.location.coordinates.longitude };
     }
 
-    // --- RENDERIZAÇÃO COMPLETA DOS DADOS ---
     function renderizarResultados(latUser, lngUser) {
         const checkMesma = document.getElementById('checkMesma').checked;
         const container = document.getElementById('results-container');
         container.innerHTML = '';
 
-        // 1. Filtragem e Ranking Individual
         let listaFinal = [];
-        
         dadosFilhos.forEach(filho => {
-            // Filtro (Considera 'ambos' no tipo)
             let candidatas = escolasDB.filter(e => {
                 const tipoMatch = (filho.tipo === 'ambos') || (e.type === filho.tipo);
                 const nivelMatch = e.levels.includes(filho.nivel);
                 return tipoMatch && nivelMatch;
             });
-
-            // Ordenação (Critério: Distância Reta para simplicidade inicial)
             candidatas = candidatas.map(e => ({...e, dist: getDistancia(latUser, lngUser, e.lat, e.lng)}));
             candidatas.sort((a,b) => a.dist - b.dist);
-            
             listaFinal.push({ filho: filho, opcoes: candidatas });
         });
 
-        // 2. Lógica Mesma Escola
         let escolaComum = null;
         let conflito = false;
         if (checkMesma && totalFilhos > 1) {
@@ -410,42 +376,33 @@
             else conflito = true;
         }
 
-        // 3. Montar Interface
         document.getElementById('result-screen').style.display = 'block';
         
-        // Mapa init
         const mapa = L.map('mapa').setView([latUser, lngUser], 14);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
         const layerGroup = L.layerGroup().addTo(mapa);
         L.marker([latUser, lngUser]).addTo(layerGroup).bindPopup("Sua Casa").openPopup();
 
         if (conflito) {
-            container.innerHTML += `<div style="padding:15px; background:#fff5f5; color:#c53030; border-radius:8px; margin-bottom:15px; text-align:center;">
-                <strong>⚠️ Atenção:</strong> Não há uma única escola que atenda todos os critérios selecionados para todos os filhos simultaneamente. Mostrando as melhores opções individuais.
-            </div>`;
+            container.innerHTML += `<div style="padding:15px; background:#fff5f5; color:#c53030; border-radius:8px; margin-bottom:15px; text-align:center;">⚠️ Conflito de logística: Mostrando melhores opções individuais.</div>`;
         } else if (escolaComum) {
-             container.innerHTML += `<div style="padding:15px; background:#f0fff4; color:#276749; border-radius:8px; margin-bottom:15px; text-align:center;">
-                <strong>✅ Sucesso:</strong> Encontramos uma escola comum para todos!
-            </div>`;
+             container.innerHTML += `<div style="padding:15px; background:#f0fff4; color:#276749; border-radius:8px; margin-bottom:15px; text-align:center;">✅ Sucesso: Escola comum encontrada!</div>`;
         }
 
-        // Loop de Renderização dos Cards
         listaFinal.forEach(item => {
             let escolha = (escolaComum && !conflito) ? escolaComum : item.opcoes[0];
-
             if(!escolha) {
                 container.innerHTML += `<div class="child-result"><strong>Criança ${item.filho.id}:</strong> Nenhuma escola encontrada.</div>`;
                 return;
             }
 
-            // Gera IDs únicos para injetar os dados depois
             const idCar = `car-${item.filho.id}`;
             const idWalk = `walk-${item.filho.id}`;
             const idDist = `dist-${item.filho.id}`;
 
             const html = `
                 <div class="child-result">
-                    <h3 style="margin:0; color:#2d3748;">🧒 Criança ${item.filho.id} <small style="font-weight:normal; font-size:0.9rem;">(${item.filho.nivel})</small></h3>
+                    <h3 style="margin:0; color:#2d3748;">🧒 Criança ${item.filho.id} <small>(${item.filho.nivel})</small></h3>
                     <div style="font-size:1.1rem; font-weight:bold; color:#3182ce; margin:5px 0;">${escolha.nome}</div>
                     
                     <div class="data-grid">
@@ -455,29 +412,25 @@
                         </div>
                         <div class="data-item">
                             <span class="data-label">Distância (Via Pública)</span>
-                            <span class="data-value" id="${idDist}"><span class="loading">Calc...</span></span>
+                            <span class="data-value" id="${idDist}"><span class="loading">...</span></span>
                         </div>
                         <div class="data-item" style="${item.filho.transporte === 'car' ? 'background:#ebf8ff; border:1px solid #bee3f8;' : ''}">
                             <span class="data-label">Tempo Carro 🚗</span>
-                            <span class="data-value" id="${idCar}"><span class="loading">Calc...</span></span>
+                            <span class="data-value" id="${idCar}"><span class="loading">...</span></span>
                         </div>
                         <div class="data-item" style="${item.filho.transporte === 'foot' ? 'background:#ebf8ff; border:1px solid #bee3f8;' : ''}">
                             <span class="data-label">Tempo A Pé 🚶</span>
-                            <span class="data-value" id="${idWalk}"><span class="loading">Calc...</span></span>
+                            <span class="data-value" id="${idWalk}"><span class="loading">...</span></span>
                         </div>
                     </div>
                 </div>
             `;
             container.innerHTML += html;
 
-            // Desenha no mapa
             L.marker([escolha.lat, escolha.lng]).addTo(layerGroup).bindPopup(escolha.nome);
-            
-            // Desenha linha (Se transporte escolhido for carro, azul solido, se a pé, azul pontilhado)
             const estiloLinha = item.filho.transporte === 'car' ? {color:'#3182ce', weight:4} : {color:'#3182ce', dashArray:'5,10', weight:4};
             
-            // Tenta desenhar rota real no mapa para a escola escolhida (apenas visual)
-            if(!escolaComum || item.filho.id === 1) { // Evita desenhar a mesma linha 3 vezes se for a mesma escola
+            if(!escolaComum || item.filho.id === 1) { 
                  L.Routing.control({
                     waypoints: [L.latLng(latUser, lngUser), L.latLng(escolha.lat, escolha.lng)],
                     serviceUrl: 'https://router.project-osrm.org/route/v1',
@@ -487,33 +440,27 @@
                 }).addTo(mapa);
             }
 
-            // --- BUSCA DADOS COMPLETOS (Carro E A pé) ---
             fetchDadosCompletos(latUser, lngUser, escolha.lat, escolha.lng, idCar, idWalk, idDist);
         });
     }
 
-    // Função que chama API duas vezes para preencher todos os campos
     function fetchDadosCompletos(lat1, lng1, lat2, lng2, idCar, idWalk, idDist) {
-        // 1. Rota de Carro (Driving) - Pega Tempo e Distância Real
+        // 1. ROTA DE CARRO (Para pegar distância real e tempo de carro)
         fetch(`https://router.project-osrm.org/route/v1/driving/${lng1},${lat1};${lng2},${lat2}?overview=false`)
             .then(r => r.json())
             .then(d => {
                 if(d.routes && d.routes.length) {
                     const distKm = (d.routes[0].distance / 1000).toFixed(1);
-                    const tempoMin = Math.round(d.routes[0].duration / 60);
+                    const tempoCarroMin = Math.round(d.routes[0].duration / 60);
                     
                     document.getElementById(idDist).innerText = distKm + " km";
-                    document.getElementById(idCar).innerText = tempoMin + " min";
-                }
-            });
+                    document.getElementById(idCar).innerText = tempoCarroMin + " min";
 
-        // 2. Rota a Pé (Walking) - Pega Tempo
-        fetch(`https://router.project-osrm.org/route/v1/walking/${lng1},${lat1};${lng2},${lat2}?overview=false`)
-            .then(r => r.json())
-            .then(d => {
-                if(d.routes && d.routes.length) {
-                    const tempoMin = Math.round(d.routes[0].duration / 60);
-                    document.getElementById(idWalk).innerText = tempoMin + " min";
+                    // 2. CORREÇÃO MATEMÁTICA PARA TEMPO A PÉ
+                    // (Distância Real / 4 km/h) * 60 min
+                    // Isso garante que nunca seja igual ao carro
+                    const tempoPeCalc = Math.round((parseFloat(distKm) / 4) * 60);
+                    document.getElementById(idWalk).innerText = "~" + tempoPeCalc + " min";
                 }
             });
     }
@@ -523,7 +470,6 @@
         const a = Math.sin((lat2-lat1)*Math.PI/360)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin((lon2-lon1)*Math.PI/360)**2;
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
-
 </script>
 
 </body>

@@ -3,322 +3,425 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Busca Escolar São Sebastião - DF</title>
+    <title>Planejador Escolar Interativo</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* DESIGN MODERNO */
+        /* ESTILO GERAL */
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Roxo Moderno */
             margin: 0;
-            padding: 20px;
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .container {
-            background: white;
-            width: 100%;
-            max-width: 900px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* CABEÇALHO */
-        .header {
-            padding: 30px;
-            text-align: center;
-            background: white;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        h1 {
-            color: #1a202c;
-            font-size: 1.5rem;
-            margin: 0 0 10px 0;
-            font-weight: 600;
-        }
-
-        /* ÁREA DE BUSCA */
-        .search-box {
-            display: flex;
-            gap: 10px;
             justify-content: center;
-            margin-top: 20px;
-            flex-wrap: wrap;
+            align-items: center;
+            overflow: hidden; /* Impede scroll durante as perguntas */
         }
 
-        input {
-            padding: 12px 20px;
-            width: 250px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 16px;
-            outline: none;
-            transition: all 0.3s;
-        }
-
-        input:focus { border-color: #3182ce; box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1); }
-
-        button {
-            padding: 12px 30px;
-            background: linear-gradient(90deg, #3182ce 0%, #2b6cb0 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(49, 130, 206, 0.3); }
-
-        /* RESULTADOS */
-        #resultado-card {
-            background: #ebf8ff;
-            border-left: 5px solid #3182ce;
-            margin: 20px 30px;
-            padding: 20px;
-            border-radius: 8px;
-            display: none;
-            text-align: left;
-        }
-
-        .result-title { color: #2c5282; font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; display: block; }
-        .result-info { color: #4a5568; font-size: 0.95rem; line-height: 1.6; }
-
-        /* MAPA */
-        #mapa {
-            height: 500px;
+        /* O CONTAINER PRINCIPAL (CENTRALIZADO) */
+        #main-container {
             width: 100%;
-            background: #eee;
+            max-width: 600px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            transition: all 0.5s ease;
         }
 
-        /* RODAPÉ */
-        .footer {
-            margin-top: 30px;
-            font-size: 0.8rem;
-            color: #718096;
-            text-align: center;
-            padding-bottom: 20px;
+        /* ANIMAÇÕES DE TRANSIÇÃO */
+        .question-box {
+            display: none; /* Escondido por padrão */
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
         }
-        .footer a { color: #3182ce; text-decoration: none; }
+
+        .question-box.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .question-box.leaving {
+            opacity: 0;
+            transform: translateY(-20px);
+            pointer-events: none; /* Impede clique duplo */
+        }
+
+        /* TIPOGRAFIA */
+        h1 { font-size: 2rem; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        h2 { font-size: 1.5rem; margin-bottom: 30px; font-weight: 400; }
         
-        .leaflet-routing-container { display: none !important; }
+        /* BOTÕES DE OPÇÃO (CARD BIG BUTTONS) */
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .option-card:hover {
+            background: white;
+            color: #764ba2;
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .option-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: rgba(0,0,0,0.1);
+        }
+
+        /* INPUTS TEXTO */
+        input[type="number"], input[type="text"] {
+            padding: 15px;
+            font-size: 1.2rem;
+            border-radius: 10px;
+            border: none;
+            width: 70%;
+            text-align: center;
+            margin-bottom: 20px;
+            outline: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .btn-next {
+            background: #ffecd2;
+            color: #333;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-next:hover { background: #fff; transform: translateY(-2px); }
+
+        /* TELA DE RESULTADO (MODO CLARO) */
+        #result-screen {
+            display: none;
+            background: white;
+            color: #333;
+            position: absolute;
+            top: 0; left: 0; width: 100%; min-height: 100vh;
+            overflow-y: auto; /* Permite scroll no resultado */
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .child-result {
+            background: #f7fafc;
+            border-left: 5px solid #764ba2;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            text-align: left;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        #mapa { height: 400px; width: 100%; border-radius: 10px; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="header">
-            <h1>Encontre a escola (São Sebastião - DF) mais perto baseado no CEP</h1>
-            
-            <div class="search-box">
-                <input type="text" id="cepInput" placeholder="Insira o seu CEP (ex: 71691100)" maxlength="9">
-                <button onclick="buscarEscola()">Buscar</button>
-            </div>
+    <div id="main-container">
 
-            <div id="resultado-card">
-                <span id="status-text">Aguardando busca...</span>
+        <div id="q1" class="question-box active">
+            <h1>👋 Olá!</h1>
+            <h2>Quantas crianças precisam de escola hoje?</h2>
+            <input type="number" id="inputQtd" min="1" max="5" value="1">
+            <br>
+            <button class="btn-next" onclick="nextStep('q1')">Continuar ➔</button>
+        </div>
+
+        <div id="q-config-intro" class="question-box">
+            <h1>🧒 Criança <span id="lbl-filho-num">1</span></h1>
+            <h2>Qual tipo de escola você busca?</h2>
+            <div class="options-grid">
+                <div class="option-card" onclick="setFilhoConfig('tipo', 'publica')">🏛️ Pública (Gratuita)</div>
+                <div class="option-card" onclick="setFilhoConfig('tipo', 'particular')">💎 Particular</div>
             </div>
         </div>
 
-        <div id="mapa"></div>
+        <div id="q-config-nivel" class="question-box">
+            <h1>📚 Criança <span id="lbl-filho-num-2">1</span></h1>
+            <h2>Qual é o nível escolar?</h2>
+            <div class="options-grid">
+                <div class="option-card" onclick="setFilhoConfig('nivel', 'fundamental')">🎒 Fundamental (6-14 anos)</div>
+                <div class="option-card" onclick="setFilhoConfig('nivel', 'medio')">🎓 Médio (15-17 anos)</div>
+            </div>
+        </div>
+
+        <div id="q-config-transporte" class="question-box">
+            <h1>🚌 Criança <span id="lbl-filho-num-3">1</span></h1>
+            <h2>Como será o transporte?</h2>
+            <div class="options-grid">
+                <div class="option-card" onclick="setFilhoConfig('transporte', 'car')">🚗 Carro (Pais levam)</div>
+                <div class="option-card" onclick="setFilhoConfig('transporte', 'foot')">🚶 A pé (Caminhando)</div>
+                <div class="option-card disabled" onclick="alert('Sistema de ônibus indisponível no momento.')">🚌 Ônibus (Indisponível)</div>
+            </div>
+        </div>
+
+        <div id="q-cep" class="question-box">
+            <h1>📍 Quase lá...</h1>
+            <h2>Qual o CEP da sua residência?</h2>
+            <input type="text" id="inputCep" placeholder="Ex: 71691100" maxlength="9">
+            <br>
+            
+            <div id="div-mesma-escola" style="display:none; margin-bottom: 15px;">
+                <label style="cursor:pointer; font-size: 0.9rem;">
+                    <input type="checkbox" id="checkMesma"> Tentar colocar todos na mesma escola?
+                </label>
+            </div>
+
+            <button class="btn-next" onclick="finalizar()">Ver Resultados 🏁</button>
+            <p id="loading-msg" style="display:none; font-size: 0.8rem; margin-top:10px;">📡 Consultando satélites...</p>
+        </div>
+
     </div>
 
-    <div class="footer">
-        Protótipo v4.2<br>Thomas J. Schrage<br>
-        Serviços de API utilizados: Nominatim (Geocoding) e OSRM (Roteamento).
+    <div id="result-screen">
+        <h1 style="color:#764ba2; text-align: center;">Planejamento Escolar</h1>
+        <div id="results-container"></div>
+        <div id="mapa"></div>
+        <br>
+        <button class="btn-next" style="background:#764ba2; color:white; width:100%" onclick="location.reload()">🔄 Recomeçar</button>
     </div>
 
 <script>
-    // --- 1. DADOS DAS ESCOLAS ---
-    const escolas = [
-        { nome: "CEM 01 (Centrão)", lat: -15.9015374, lng: -47.7794402 },
-        { nome: "CEI 03", lat: -15.9039391, lng: -47.7783892 },
-        { nome: "Escola Ceprom", lat: -15.9000604, lng: -47.7719123 },
-        { nome: "Colégio Modelo", lat: -15.9038388, lng: -47.7619481 },
-        { nome: "Escola Master", lat: -15.9077383, lng: -47.7619034 }
+    // --- BANCO DE DADOS ---
+    const escolasDB = [
+        { id: 1, nome: "CEM 01 (Centrão)", lat: -15.9015374, lng: -47.7794402, type: 'publica', levels: ['medio'] },
+        { id: 2, nome: "CEF São José", lat: -15.9039391, lng: -47.7783892, type: 'publica', levels: ['fundamental'] },
+        { id: 3, nome: "Escola Classe Agrovila", lat: -15.9000604, lng: -47.7719123, type: 'publica', levels: ['fundamental'] },
+        { id: 4, nome: "Colégio Modelo", lat: -15.9038388, lng: -47.7619481, type: 'particular', levels: ['fundamental', 'medio'] },
+        { id: 5, nome: "Escola Master", lat: -15.9077383, lng: -47.7619034, type: 'particular', levels: ['fundamental', 'medio'] },
+        { id: 6, nome: "CED São Bartolomeu", lat: -15.915, lng: -47.765, type: 'publica', levels: ['fundamental', 'medio'] } 
     ];
 
-    let mapa = null;
-    let controleRota = null;
-    let camadaUsuario = null;
+    // --- ESTADO DO APP ---
+    let totalFilhos = 1;
+    let filhoAtual = 1;
+    let dadosFilhos = [];
+    let configTemp = {}; 
 
-    // --- 2. INICIALIZA O MAPA ---
-    window.onload = function() {
-        mapa = L.map('mapa').setView([-15.9050, -47.7700], 14);
+    // --- FUNÇÕES DE TRANSIÇÃO (SURGE E SUMA) ---
+    function switchScreen(idSai, idEntra) {
+        const divSai = document.getElementById(idSai);
+        const divEntra = document.getElementById(idEntra);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(mapa);
+        // Animação de saída
+        divSai.classList.add('leaving');
+        divSai.classList.remove('active');
 
-        camadaUsuario = L.layerGroup().addTo(mapa);
+        // Espera animação acabar (500ms) para mostrar o próximo
+        setTimeout(() => {
+            divSai.style.display = 'none'; // Some de vez
+            
+            // Prepara o próximo (reseta animação)
+            divEntra.style.display = 'block';
+            divEntra.classList.remove('leaving');
+            
+            // Pequeno delay para o browser renderizar e animar a entrada
+            setTimeout(() => {
+                divEntra.classList.add('active');
+            }, 50);
 
-        const iconeCinza = L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-grey.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-        });
+        }, 500);
+    }
 
-        escolas.forEach(esc => {
-            L.marker([esc.lat, esc.lng], {icon: iconeCinza})
-             .addTo(mapa)
-             .bindPopup(`<b>${esc.nome}</b>`);
-        });
-    };
+    // --- LÓGICA DO FLUXO ---
 
-    // --- 3. FUNÇÃO DE BUSCA ---
-    async function buscarEscola() {
-        const cep = document.getElementById('cepInput').value.replace(/\D/g, '');
-        const card = document.getElementById('resultado-card');
-        const statusText = document.getElementById('status-text');
+    function nextStep(currentId) {
+        if (currentId === 'q1') {
+            totalFilhos = parseInt(document.getElementById('inputQtd').value);
+            if(totalFilhos < 1) totalFilhos = 1;
+            
+            filhoAtual = 1;
+            dadosFilhos = [];
+            atualizarLabelsFilho();
+            switchScreen('q1', 'q-config-intro');
+        }
+    }
 
-        if (cep.length !== 8) { alert("Por favor, insira um CEP válido com 8 dígitos."); return; }
+    function atualizarLabelsFilho() {
+        document.getElementById('lbl-filho-num').innerText = filhoAtual;
+        document.getElementById('lbl-filho-num-2').innerText = filhoAtual;
+        document.getElementById('lbl-filho-num-3').innerText = filhoAtual;
+    }
 
-        camadaUsuario.clearLayers();
-        if (controleRota) { try { mapa.removeControl(controleRota); } catch(e){} controleRota = null; }
+    function setFilhoConfig(chave, valor) {
+        configTemp[chave] = valor;
 
-        card.style.display = 'block';
-        card.style.background = '#ebf8ff';
-        statusText.innerHTML = "🛰️ <strong>Localizando endereço...</strong>";
+        // Lógica de avanço automático
+        if (chave === 'tipo') {
+            switchScreen('q-config-intro', 'q-config-nivel');
+        } 
+        else if (chave === 'nivel') {
+            switchScreen('q-config-nivel', 'q-config-transporte');
+        } 
+        else if (chave === 'transporte') {
+            // Salvou o filho atual
+            configTemp.id = filhoAtual;
+            dadosFilhos.push({...configTemp}); // Salva cópia
+            configTemp = {}; // Limpa temp
+
+            // Verifica se tem mais filhos
+            if (filhoAtual < totalFilhos) {
+                filhoAtual++;
+                atualizarLabelsFilho();
+                // Volta para o inicio do loop de config (efeito visual de reset)
+                switchScreen('q-config-transporte', 'q-config-intro');
+            } else {
+                // Acabou, vai para o CEP
+                if (totalFilhos > 1) document.getElementById('div-mesma-escola').style.display = 'block';
+                switchScreen('q-config-transporte', 'q-cep');
+            }
+        }
+    }
+
+    // --- FINALIZAÇÃO ---
+    async function finalizar() {
+        const cep = document.getElementById('inputCep').value.replace(/\D/g, '');
+        if (cep.length !== 8) { alert('CEP inválido'); return; }
+
+        document.getElementById('loading-msg').style.display = 'block';
 
         try {
             const coords = await obterLatLon(cep);
-            const latUser = parseFloat(coords.lat);
-            const lngUser = parseFloat(coords.lon);
-
-            let escolaVencedora = null;
-            let menorDistReta = Infinity;
-
-            escolas.forEach(esc => {
-                const d = getDistanciaReta(latUser, lngUser, esc.lat, esc.lng);
-                if (d < menorDistReta) { menorDistReta = d; escolaVencedora = esc; }
-            });
-
-            const iconeCasa = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34] });
-            const iconeVencedor = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34] });
-
-            L.marker([latUser, lngUser], {icon: iconeCasa}).addTo(camadaUsuario).bindPopup("<b>Seu Endereço</b>").openPopup();
-            L.marker([escolaVencedora.lat, escolaVencedora.lng], {icon: iconeVencedor}).addTo(camadaUsuario).bindPopup(`<b>${escolaVencedora.nome}</b><br>Recomendada`).openPopup();
-
-            statusText.innerHTML = "🛣️ <strong>Calculando rota...</strong>";
-            tentaRotaPorRua(latUser, lngUser, escolaVencedora, menorDistReta);
-
-        } catch (erro) {
-            console.error(erro);
-            alert("Não conseguimos achar a rua exata desse CEP. Mostrando estimativa pelo Centro.");
-        }
-    }
-
-    // --- 4. LÓGICA DE ROTA ---
-    function tentaRotaPorRua(latUser, lngUser, escola, distReta) {
-        const card = document.getElementById('resultado-card');
-        const statusText = document.getElementById('status-text');
-
-        let timer = setTimeout(() => {
-            usarLinhaReta(latUser, lngUser, escola, distReta, "Servidor de rotas demorou.");
-        }, 5000);
-
-        try {
-            controleRota = L.Routing.control({
-                waypoints: [L.latLng(latUser, lngUser), L.latLng(escola.lat, escola.lng)],
-                serviceUrl: 'https://router.project-osrm.org/route/v1',
-                lineOptions: { styles: [{color: '#3182ce', opacity: 0.8, weight: 6}] },
-                createMarker: function() { return null; },
-                addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false
-            }).addTo(mapa);
-
-            // AQUI ESTÁ A MUDANÇA: CÁLCULO DOS DOIS TEMPOS
-            controleRota.on('routesfound', function(e) {
-                clearTimeout(timer);
-                const r = e.routes[0].summary;
-                const distReal = (r.totalDistance / 1000).toFixed(1);
-                
-                // 1. Tempo Carro (Vem da API) - Convertendo segundos para minutos
-                const tempoCarro = Math.round(r.totalTime / 60);
-
-                // 2. Tempo A Pé (Estimativa baseada na distância da rota: 5km/h)
-                // Fórmula: (Distância Km / 5) * 60 minutos
-                const tempoPe = Math.round((parseFloat(distReal) / 5) * 60);
-                
-                card.style.background = '#f0fff4';
-                card.style.borderLeftColor = '#38a169';
-                
-                statusText.innerHTML = `
-                    <span class="result-title">Escola Recomendada: ${escola.nome}</span>
-                    <div class="result-info">
-                        <strong>Distância Real (via pública):</strong> ${distReal} km<br>
-                        <strong>Tempo Estimado (Carro):</strong> ${tempoCarro} min<br>
-                        <strong>Tempo Estimado (A pé):</strong> ~${tempoPe} min<br>
-                        <small style="color:#718096">Distância em Linha Reta: ${distReta.toFixed(2)} km</small>
-                    </div>
-                `;
-            });
-
-            controleRota.on('routingerror', function() {
-                clearTimeout(timer);
-                usarLinhaReta(latUser, lngUser, escola, distReta, "Servidor de mapas ocupado.");
-            });
-
+            processarResultados(coords.lat, coords.lon);
         } catch (e) {
-            clearTimeout(timer);
-            usarLinhaReta(latUser, lngUser, escola, distReta, "Erro interno.");
+            alert("Erro ao buscar CEP. Verifique e tente novamente.");
+            document.getElementById('loading-msg').style.display = 'none';
         }
     }
 
-    function usarLinhaReta(latUser, lngUser, escola, distReta, motivo) {
-        if (controleRota) { try { mapa.removeControl(controleRota); } catch(e){} controleRota = null; }
-        
-        const card = document.getElementById('resultado-card');
-        const statusText = document.getElementById('status-text');
-
-        const linha = L.polyline([[latUser, lngUser], [escola.lat, escola.lng]], { color: 'red', dashArray: '10, 10', weight: 4 }).addTo(camadaUsuario);
-        mapa.fitBounds(linha.getBounds(), {padding: [50, 50]});
-
-        card.style.background = '#fffaf0'; 
-        card.style.borderLeftColor = '#dd6b20';
-        
-        statusText.innerHTML = `
-            <span class="result-title">⚠️ Escola Recomendada: ${escola.nome}</span>
-            <div class="result-info">
-                <strong>Distância Linear:</strong> ${distReta.toFixed(2)} km<br>
-                <small>(${motivo} Não foi possível calcular a rota exata por rua agora, exibindo linha reta.)</small>
-            </div>
-        `;
-    }
-
-    // --- EXTRAS ---
     async function obterLatLon(cep) {
         try {
             const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=Brazil+${cep}&limit=1`);
             const d = await r.json();
-            if (d.length > 0) return { lat: d[0].lat, lon: d[0].lon };
+            if (d.length > 0) return { lat: parseFloat(d[0].lat), lon: parseFloat(d[0].lon) };
         } catch(e) {}
         const r2 = await fetch(`https://brasilapi.com.br/api/cep/v2/${cep}`);
-        if (!r2.ok) throw new Error();
         const d2 = await r2.json();
         return { lat: d2.location.coordinates.latitude, lon: d2.location.coordinates.longitude };
     }
 
-    function getDistanciaReta(lat1, lon1, lat2, lon2) {
+    // --- RENDERIZAR RESULTADO ---
+    function processarResultados(latUser, lngUser) {
+        const checkMesma = document.getElementById('checkMesma').checked;
+        const container = document.getElementById('results-container');
+        container.innerHTML = '';
+
+        // Processa listas
+        let listaFinal = [];
+        
+        dadosFilhos.forEach(filho => {
+            let candidatas = escolasDB.filter(e => e.type === filho.tipo && e.levels.includes(filho.nivel));
+            candidatas = candidatas.map(e => ({...e, dist: getDistancia(latUser, lngUser, e.lat, e.lng)}));
+            candidatas.sort((a,b) => a.dist - b.dist);
+            
+            listaFinal.push({ filho: filho, opcoes: candidatas });
+        });
+
+        // Lógica Mesma Escola
+        let escolaComum = null;
+        let conflito = false;
+        if (checkMesma && totalFilhos > 1) {
+            let ids = listaFinal[0].opcoes.map(e => e.id);
+            for(let i=1; i<listaFinal.length; i++) {
+                let idsOutro = listaFinal[i].opcoes.map(e => e.id);
+                ids = ids.filter(id => idsOutro.includes(id));
+            }
+            if(ids.length > 0) escolaComum = escolasDB.find(e => e.id === ids[0]);
+            else conflito = true;
+        }
+
+        // Renderiza HTML
+        if (conflito) container.innerHTML += `<div style="padding:10px; background:#ffd1d1; color:#c53030; border-radius:5px; margin-bottom:10px;">⚠️ Não existe escola única para as opções selecionadas. Mostrando individuais.</div>`;
+
+        // Prepara Mapa
+        document.getElementById('result-screen').style.display = 'block';
+        const mapa = L.map('mapa').setView([latUser, lngUser], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
+        const layerGroup = L.layerGroup().addTo(mapa);
+
+        // Pino Casa
+        L.marker([latUser, lngUser]).addTo(layerGroup).bindPopup("Sua Casa").openPopup();
+
+        // Loop Visualização
+        listaFinal.forEach(item => {
+            let escolha = (escolaComum && !conflito) ? escolaComum : item.opcoes[0];
+
+            if(!escolha) {
+                container.innerHTML += `<div class="child-result"><strong>Criança ${item.filho.id}:</strong> Nenhuma escola encontrada.</div>`;
+                return;
+            }
+
+            let divId = `rota-${item.filho.id}`;
+            let html = `
+                <div class="child-result">
+                    <h3>👶 Criança ${item.filho.id} <small>(${item.filho.nivel})</small></h3>
+                    <strong>Escola:</strong> ${escolha.nome}<br>
+                    <div id="${divId}">Calculando...</div>
+                </div>
+            `;
+            container.innerHTML += html;
+
+            // Adiciona no mapa
+            L.marker([escolha.lat, escolha.lng]).addTo(layerGroup).bindPopup(escolha.nome);
+            L.polyline([[latUser, lngUser], [escolha.lat, escolha.lng]], {color:'blue', dashArray:'5,5'}).addTo(layerGroup);
+
+            // Calcula Tempo
+            calcularRota(latUser, lngUser, escolha, item.filho.transporte, divId);
+        });
+    }
+
+    function getDistancia(lat1, lon1, lat2, lon2) {
         const R = 6371; 
         const a = Math.sin((lat2-lat1)*Math.PI/360)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin((lon2-lon1)*Math.PI/360)**2;
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
+
+    function calcularRota(lat, lng, escola, modo, divId) {
+        const el = document.getElementById(divId);
+        const profile = modo === 'foot' ? 'walking' : 'driving';
+        
+        fetch(`https://router.project-osrm.org/route/v1/${profile}/${lng},${lat};${escola.lng},${escola.lat}?overview=false`)
+        .then(r => r.json())
+        .then(d => {
+            if(d.routes && d.routes.length) {
+                let min = Math.round(d.routes[0].duration / 60);
+                el.innerHTML = `⏱️ <strong>${min} min</strong> (${modo === 'foot' ? 'Andando' : 'Carro'})`;
+            } else {
+                el.innerHTML = "Tempo indisponível.";
+            }
+        });
+    }
+
 </script>
 
 </body>

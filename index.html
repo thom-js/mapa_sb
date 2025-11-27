@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Busca Escolar São Sebastião</title>
+    <title>Busca Escolar São Sebastião - DF</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -125,7 +125,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>Encontre a escola mais perto baseado no CEP</h1>
+            <h1>Encontre a escola (São Sebastião - DF) mais perto baseado no CEP</h1>
             
             <div class="search-box">
                 <input type="text" id="cepInput" placeholder="Insira o seu CEP (ex: 71691100)" maxlength="9">
@@ -141,9 +141,10 @@
     </div>
 
     <div class="footer">
-        Protótipo v4.0<br>
+        Protótipo v4.0<br>Thomas J. Schrage<br>
         Serviços de API utilizados: Nominatim (Geocoding) e OSRM (Roteamento).<br>
-        Elaborado com o apoio do Gemini 3.0 Pro.
+        
+        
     </div>
 
 <script>
@@ -202,7 +203,7 @@
 
         card.style.display = 'block';
         card.style.background = '#ebf8ff'; // Azul claro loading
-        statusText.innerHTML = "🛰️ <strong>Localizando endereço via satélite...</strong>";
+        statusText.innerHTML = "🛰️ <strong>Localizando endereço...</strong>";
 
         try {
             // A. Geocodificação (Nominatim)
@@ -229,7 +230,7 @@
             L.marker([escolaVencedora.lat, escolaVencedora.lng], {icon: iconeVencedor}).addTo(camadaUsuario).bindPopup(`<b>${escolaVencedora.nome}</b><br>Recomendada`).openPopup();
 
             // D. Tenta Traçar Rota (Plano A)
-            statusText.innerHTML = "🛣️ <strong>Calculando rota pelas ruas...</strong>";
+            statusText.innerHTML = "🛣️ <strong>Calculando rota...</strong>";
             tentaRotaPorRua(latUser, lngUser, escolaVencedora, menorDistReta);
 
         } catch (erro) {
@@ -269,9 +270,9 @@
                 card.style.borderLeftColor = '#38a169';
                 
                 statusText.innerHTML = `
-                    <span class="result-title">✅ Escola Recomendada: ${escola.nome}</span>
+                    <span class="result-title">Escola Recomendada: ${escola.nome}</span>
                     <div class="result-info">
-                        <strong>Distância Real (Rua):</strong> ${distReal} km<br>
+                        <strong>Distância Real (via pública):</strong> ${distReal} km<br>
                         <strong>Distância Linear (Reta):</strong> ${distReta.toFixed(2)} km<br>
                         <em>Trajeto calculado via vias públicas.</em>
                     </div>

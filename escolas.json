@@ -1,8 +1,355 @@
 [
-    { "id": 1, "nome": "CEM 01 (Centrão)", "lat": -15.9015374, "lng": -47.7794402, "type": "publica", "levels": ["medio"] },
-    { "id": 2, "nome": "CEF São José", "lat": -15.9039391, "lng": -47.7783892, "type": "publica", "levels": ["fundamental"] },
-    { "id": 3, "nome": "Escola Classe Agrovila", "lat": -15.9000604, "lng": -47.7719123, "type": "publica", "levels": ["fundamental"] },
-    { "id": 4, "nome": "Colégio Modelo", "lat": -15.9038388, "lng": -47.7619481, "type": "particular", "levels": ["fundamental", "medio"] },
-    { "id": 5, "nome": "Escola Master", "lat": -15.9077383, "lng": -47.7619034, "type": "particular", "levels": ["fundamental", "medio"] },
-    { "id": 6, "nome": "CED São Bartolomeu", "lat": -15.915, "lng": -47.765, "type": "publica", "levels": ["fundamental", "medio"] }
+    {
+        "id": 1,
+        "nome": "CEI 1",
+        "lat": -15.900156673180987,
+        "lng": -47.77629146265384,
+        "type": "publica",
+        "levels": [
+            "infantil"
+        ],
+        "endereco": "Qd 101 Cj 10- St Resid Oeste – São Sebastião",
+        "cep": "71692050"
+    },
+    {
+        "id": 2,
+        "nome": "CEI 3",
+        "lat": -15.903700327276486,
+        "lng": -47.778481342418594,
+        "type": "publica",
+        "levels": [
+            "infantil"
+        ],
+        "endereco": "Qd 202 Cj 4 1- St Resid Oeste – São Sebastião",
+        "cep": "71692510"
+    },
+    {
+        "id": 3,
+        "nome": "CEI 5",
+        "lat": -15.883840062207526,
+        "lng": -47.80442069315018,
+        "type": "publica",
+        "levels": [
+            "infantil"
+        ],
+        "endereco": "Qd 8 Lt C Av das Paineiras Jardim Botânico 8- São Sebastião",
+        "cep": "71681445"
+    },
+    {
+        "id": 4,
+        "nome": "CEI Parque dos Ipês",
+        "lat": -15.91781214176412,
+        "lng": -47.75822823589534,
+        "type": "publica",
+        "levels": [
+            "infantil"
+        ],
+        "endereco": "Av Crixá Lt 3- São Sebastião",
+        "cep": "71685040"
+    },
+    {
+        "id": 5,
+        "nome": "CAIC Unesco",
+        "lat": -15.901576004874496,
+        "lng": -47.773547064404355,
+        "type": "publica",
+        "levels": [
+            "especial"
+        ],
+        "endereco": "Rua do CAIC – Centro São Sebastião",
+        "cep": "71691047"
+    },
+    {
+        "id": 6,
+        "nome": "EC 104",
+        "lat": -15.895791391868803,
+        "lng": -47.78256175687052,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "Qd 104 1- St Resid Oeste – São Sebastião",
+        "cep": "71692300"
+    },
+    {
+        "id": 7,
+        "nome": "EC 303",
+        "lat": -15.903380911352322,
+        "lng": -47.781814240817944,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "Qd 303 Cj 1 34 Setor Resid Oeste São Sebastião",
+        "cep": "71692805"
+    },
+    {
+        "id": 8,
+        "nome": "EC Agrovila São Sebastião",
+        "lat": -15.9105640157533,
+        "lng": -47.75835019707634,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "Qd 100 AE 1- Vila Nova São Sebastião",
+        "cep": "71693107"
+    },
+    {
+        "id": 9,
+        "nome": "EC Aguilhada",
+        "lat": -15.962698263831642,
+        "lng": -47.73923787280244,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "CPC Rod BR 251 – Km 32- NR Aguilhada",
+        "cep": "71693994"
+    },
+    {
+        "id": 10,
+        "nome": "EC Bela Vista",
+        "lat": -15.913653575077968,
+        "lng": -47.75452176784727,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "St Bela Vista Rua 1 221- Bela Vista São Sebastião",
+        "cep": "71694102"
+    },
+    {
+        "id": 11,
+        "nome": "EC Cachoeirinha",
+        "lat": -15.989247063840434,
+        "lng": -47.75147376956431,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "Faz Santa Bárbara BR 251- Zona Rural",
+        "cep": "70830300"
+    },
+    {
+        "id": 12,
+        "nome": "EC Cerâmica da Benção",
+        "lat": -15.904273523175998,
+        "lng": -47.76910362697674,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "Rua da Gameleira Qd 2 AE- Centro São Sebastião",
+        "cep": "71691085"
+    },
+    {
+        "id": 13,
+        "nome": "EC Dom Bosco",
+        "lat": -15.902527141753724,
+        "lng": -47.77378983454127,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "Rua do CAIC- Centro São Sebastião",
+        "cep": "71691047"
+    },
+    {
+        "id": 14,
+        "nome": "EC São Bartolomeu",
+        "lat": -15.910388369956475,
+        "lng": -47.7390385380815,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "NR Sao Bartolomeu Km 2",
+        "cep": "71694116"
+    },
+    {
+        "id": 15,
+        "nome": "EC Vila do Boa",
+        "lat": -15.8773727423908,
+        "lng": -47.79056014773723,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "Vila do Boa Rua 1B- Vila do Boa São Sebastião",
+        "cep": "71697305"
+    },
+    {
+        "id": 16,
+        "nome": "EC Vila Nova",
+        "lat": -15.913441670679996,
+        "lng": -47.75876265820811,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "Qd 31 200 Bairro São Jose- Vila São Jose – São Sebastião",
+        "cep": "71693032"
+    },
+    {
+        "id": 17,
+        "nome": "CEF 01 do Jardins Mangueiral",
+        "lat": -15.895058568959229,
+        "lng": -47.800132904590455,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "Praça de Atividades 5Lt 2 – Jardins Mangueiral, São Sebstião",
+        "cep": "70297400"
+    },
+    {
+        "id": 18,
+        "nome": "CEF Cerâmica São Paulo",
+        "lat": -15.887529259193819,
+        "lng": -47.77828952140578,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "Rua 1, Lt 1- St Tradicional São Sebastião",
+        "cep": "71691101"
+    },
+    {
+        "id": 19,
+        "nome": "CEF do Bosque",
+        "lat": -15.905270913506481,
+        "lng": -47.75599740638228,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "Qd 8 2- Resid do Bosque – São Sebastião",
+        "cep": "71694008"
+    },
+    {
+        "id": 20,
+        "nome": "CEF Jatai",
+        "lat": -16.019454585483146,
+        "lng": -47.8003232258157,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "CPC Rod DF- 140 Km 11- Lago Sul",
+        "cep": "71681990"
+    },
+    {
+        "id": 21,
+        "nome": "CEF Miguel Arcanjo",
+        "lat": -15.892266340832165,
+        "lng": -47.78085477138519,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "Qd 2 3- São Bartolomeu – São Sebastião",
+        "cep": "71697040"
+    },
+    {
+        "id": 22,
+        "nome": "CEF Nova Betânia",
+        "lat": -15.949659242891352,
+        "lng": -47.79153443174675,
+        "type": "publica",
+        "levels": [
+            "fundamental"
+        ],
+        "endereco": "CPC Rod BR-251 – Km 69- São Sebastião",
+        "cep": "71693994"
+    },
+    {
+        "id": 23,
+        "nome": "CED São Bartolomeu",
+        "lat": -15.893971813092664,
+        "lng": -47.778953888361826,
+        "type": "publica",
+        "levels": [
+            "fundamental",
+            "medio"
+        ],
+        "endereco": "Qd 2 Cj 3 4- São Bartolomeu – São Sebastião",
+        "cep": "71697045"
+    },
+    {
+        "id": 24,
+        "nome": "CED São Francisco",
+        "lat": -15.91437037584332,
+        "lng": -47.76242482152631,
+        "type": "publica",
+        "levels": [
+            "fundamental",
+            "medio"
+        ],
+        "endereco": "Qd 17, Lt 100- São Francisco – São Sebastião",
+        "cep": "71693317"
+    },
+    {
+        "id": 25,
+        "nome": "CED São Jose",
+        "lat": -15.912524914670833,
+        "lng": -47.75874716786052,
+        "type": "publica",
+        "levels": [
+            "fundamental",
+            "medio"
+        ],
+        "endereco": "Qd 16 AE- Vila São José – São Sebastião",
+        "cep": "71693059"
+    },
+    {
+        "id": 26,
+        "nome": "CED Zumbi dos Palmares",
+        "lat": -15.903262401727886,
+        "lng": -47.771810206626625,
+        "type": "publica",
+        "levels": [
+            "fundamental",
+            "medio"
+        ],
+        "endereco": "NR Capão Comprido, Ch 3, AE 1- São Sebastião",
+        "cep": "71699901"
+    },
+    {
+        "id": 27,
+        "nome": "CED Jardins Mangueiral",
+        "lat": -15.890563797580402,
+        "lng": -47.81188916244413,
+        "type": "publica",
+        "levels": [
+            "fundamental",
+            "medio"
+        ],
+        "endereco": "PA 02, Lote 06, Jardins Mangueiral, Jardim Botânico/DF",
+        "cep": "71698-500"
+    },
+    {
+        "id": 28,
+        "nome": "CEM 1 (Centrão)",
+        "lat": -15.901838643471805,
+        "lng": -47.779325691352405,
+        "type": "publica",
+        "levels": [
+            "medio"
+        ],
+        "endereco": "Qd 203 AE – Resid Oeste",
+        "cep": "71692641"
+    },
+    {
+        "id": 29,
+        "nome": "CIL 1",
+        "lat": -15.807941125710052,
+        "lng": -47.90858110095744,
+        "type": "publica",
+        "levels": [
+            "linguas"
+        ],
+        "endereco": "Complexo Educacional Zumbi dos Palmares – NR Capão Comprido, Ch 3, AE 01",
+        "cep": "71699-901"
+    }
 ]

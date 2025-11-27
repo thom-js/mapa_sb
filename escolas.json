@@ -1,0 +1,8 @@
+[
+    { "id": 1, "nome": "CEM 01 (Centrão)", "lat": -15.9015374, "lng": -47.7794402, "type": "publica", "levels": ["medio"] },
+    { "id": 2, "nome": "CEF São José", "lat": -15.9039391, "lng": -47.7783892, "type": "publica", "levels": ["fundamental"] },
+    { "id": 3, "nome": "Escola Classe Agrovila", "lat": -15.9000604, "lng": -47.7719123, "type": "publica", "levels": ["fundamental"] },
+    { "id": 4, "nome": "Colégio Modelo", "lat": -15.9038388, "lng": -47.7619481, "type": "particular", "levels": ["fundamental", "medio"] },
+    { "id": 5, "nome": "Escola Master", "lat": -15.9077383, "lng": -47.7619034, "type": "particular", "levels": ["fundamental", "medio"] },
+    { "id": 6, "nome": "CED São Bartolomeu", "lat": -15.915, "lng": -47.765, "type": "publica", "levels": ["fundamental", "medio"] }
+]

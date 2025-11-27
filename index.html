@@ -40,10 +40,11 @@
                 <button class="btn-nav btn-back" onclick="goBack()">Voltar</button>
             </div>
 
-            <div id="tpl-nivel" class="question-box">
+<div id="tpl-nivel" class="question-box">
                 <h1>Criança <span class="lbl-num">1</span></h1>
                 <h2>Nível de Ensino:</h2>
                 <div class="options-grid">
+                    <div class="option-card" onclick="saveConfig('nivel', 'infantil')">Infantil (0-5 anos)</div>
                     <div class="option-card" onclick="saveConfig('nivel', 'fundamental')">Fundamental (6-14 anos)</div>
                     <div class="option-card" onclick="saveConfig('nivel', 'medio')">Médio (15-17 anos)</div>
                 </div>

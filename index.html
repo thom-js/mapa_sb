@@ -28,7 +28,7 @@
         .container {
             background: white;
             width: 100%;
-            max-width: 900px; /* Mais largo para caber o mapa bem */
+            max-width: 900px;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             overflow: hidden;
@@ -93,7 +93,7 @@
             margin: 20px 30px;
             padding: 20px;
             border-radius: 8px;
-            display: none; /* Escondido no início */
+            display: none;
             text-align: left;
         }
 
@@ -117,7 +117,6 @@
         }
         .footer a { color: #3182ce; text-decoration: none; }
         
-        /* Limpeza visual do plugin de rota */
         .leaflet-routing-container { display: none !important; }
     </style>
 </head>
@@ -141,10 +140,8 @@
     </div>
 
     <div class="footer">
-        Protótipo v4.0<br>Thomas J. Schrage<br>
-        Serviços de API utilizados: Nominatim (Geocoding) e OSRM (Roteamento).<br>
-        
-        
+        Protótipo v4.2<br>Thomas J. Schrage<br>
+        Serviços de API utilizados: Nominatim (Geocoding) e OSRM (Roteamento).
     </div>
 
 <script>
@@ -157,25 +154,20 @@
         { nome: "Escola Master", lat: -15.9077383, lng: -47.7619034 }
     ];
 
-    // Variáveis globais
     let mapa = null;
     let controleRota = null;
-    let camadaUsuario = null; // Camada para o pino da casa e linhas
+    let camadaUsuario = null;
 
-    // --- 2. INICIALIZA O MAPA ASSIM QUE A PÁGINA CARREGA ---
+    // --- 2. INICIALIZA O MAPA ---
     window.onload = function() {
-        // Centraliza em São Sebastião
         mapa = L.map('mapa').setView([-15.9050, -47.7700], 14);
 
-        // Adiciona o desenho das ruas
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(mapa);
 
-        // Cria a camada onde vamos desenhar o usuário depois
         camadaUsuario = L.layerGroup().addTo(mapa);
 
-        // Opcional: Mostra todas as escolas no mapa como pontinhos cinzas discretos
         const iconeCinza = L.icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-grey.png',
             shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -197,21 +189,18 @@
 
         if (cep.length !== 8) { alert("Por favor, insira um CEP válido com 8 dígitos."); return; }
 
-        // Limpa desenhos anteriores
         camadaUsuario.clearLayers();
         if (controleRota) { try { mapa.removeControl(controleRota); } catch(e){} controleRota = null; }
 
         card.style.display = 'block';
-        card.style.background = '#ebf8ff'; // Azul claro loading
+        card.style.background = '#ebf8ff';
         statusText.innerHTML = "🛰️ <strong>Localizando endereço...</strong>";
 
         try {
-            // A. Geocodificação (Nominatim)
             const coords = await obterLatLon(cep);
             const latUser = parseFloat(coords.lat);
             const lngUser = parseFloat(coords.lon);
 
-            // B. Calcula escola mais próxima (Matemática)
             let escolaVencedora = null;
             let menorDistReta = Infinity;
 
@@ -220,33 +209,26 @@
                 if (d < menorDistReta) { menorDistReta = d; escolaVencedora = esc; }
             });
 
-            // C. Pinos no Mapa
-            // Ícone Azul (Casa)
             const iconeCasa = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34] });
-            // Ícone Verde (Escola Vencedora - destaque)
             const iconeVencedor = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34] });
 
             L.marker([latUser, lngUser], {icon: iconeCasa}).addTo(camadaUsuario).bindPopup("<b>Seu Endereço</b>").openPopup();
             L.marker([escolaVencedora.lat, escolaVencedora.lng], {icon: iconeVencedor}).addTo(camadaUsuario).bindPopup(`<b>${escolaVencedora.nome}</b><br>Recomendada`).openPopup();
 
-            // D. Tenta Traçar Rota (Plano A)
             statusText.innerHTML = "🛣️ <strong>Calculando rota...</strong>";
             tentaRotaPorRua(latUser, lngUser, escolaVencedora, menorDistReta);
 
         } catch (erro) {
             console.error(erro);
-            // Fallback para CEP não encontrado (centro de SS)
             alert("Não conseguimos achar a rua exata desse CEP. Mostrando estimativa pelo Centro.");
-            // Recarrega mapa no centro (opcional)
         }
     }
 
-    // --- 4. LÓGICA DE ROTA (Híbrida) ---
+    // --- 4. LÓGICA DE ROTA ---
     function tentaRotaPorRua(latUser, lngUser, escola, distReta) {
         const card = document.getElementById('resultado-card');
         const statusText = document.getElementById('status-text');
 
-        // Timeout de segurança
         let timer = setTimeout(() => {
             usarLinhaReta(latUser, lngUser, escola, distReta, "Servidor de rotas demorou.");
         }, 5000);
@@ -260,21 +242,29 @@
                 addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false
             }).addTo(mapa);
 
+            // AQUI ESTÁ A MUDANÇA: CÁLCULO DOS DOIS TEMPOS
             controleRota.on('routesfound', function(e) {
                 clearTimeout(timer);
                 const r = e.routes[0].summary;
                 const distReal = (r.totalDistance / 1000).toFixed(1);
                 
-                // ATUALIZA O TEXTO FINAL (SUCESSO)
-                card.style.background = '#f0fff4'; // Verde claro
+                // 1. Tempo Carro (Vem da API) - Convertendo segundos para minutos
+                const tempoCarro = Math.round(r.totalTime / 60);
+
+                // 2. Tempo A Pé (Estimativa baseada na distância da rota: 5km/h)
+                // Fórmula: (Distância Km / 5) * 60 minutos
+                const tempoPe = Math.round((parseFloat(distReal) / 5) * 60);
+                
+                card.style.background = '#f0fff4';
                 card.style.borderLeftColor = '#38a169';
                 
                 statusText.innerHTML = `
                     <span class="result-title">Escola Recomendada: ${escola.nome}</span>
                     <div class="result-info">
                         <strong>Distância Real (via pública):</strong> ${distReal} km<br>
-                        <strong>Distância Linear (Reta):</strong> ${distReta.toFixed(2)} km<br>
-                        <em>Trajeto calculado via vias públicas.</em>
+                        <strong>Tempo Estimado (Carro):</strong> ${tempoCarro} min<br>
+                        <strong>Tempo Estimado (A pé):</strong> ~${tempoPe} min<br>
+                        <small style="color:#718096">Distância em Linha Reta: ${distReta.toFixed(2)} km</small>
                     </div>
                 `;
             });
@@ -296,12 +286,10 @@
         const card = document.getElementById('resultado-card');
         const statusText = document.getElementById('status-text');
 
-        // Desenha linha vermelha
         const linha = L.polyline([[latUser, lngUser], [escola.lat, escola.lng]], { color: 'red', dashArray: '10, 10', weight: 4 }).addTo(camadaUsuario);
         mapa.fitBounds(linha.getBounds(), {padding: [50, 50]});
 
-        // TEXTO FINAL (FALLBACK)
-        card.style.background = '#fffaf0'; // Amarelo claro
+        card.style.background = '#fffaf0'; 
         card.style.borderLeftColor = '#dd6b20';
         
         statusText.innerHTML = `
@@ -315,13 +303,11 @@
 
     // --- EXTRAS ---
     async function obterLatLon(cep) {
-        // Tenta Nominatim
         try {
             const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=Brazil+${cep}&limit=1`);
             const d = await r.json();
             if (d.length > 0) return { lat: d[0].lat, lon: d[0].lon };
         } catch(e) {}
-        // Tenta BrasilAPI
         const r2 = await fetch(`https://brasilapi.com.br/api/cep/v2/${cep}`);
         if (!r2.ok) throw new Error();
         const d2 = await r2.json();

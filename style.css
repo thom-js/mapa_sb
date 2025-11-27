@@ -59,6 +59,49 @@
         h2 { font-size: 1.25rem; margin-bottom: 25px; color: #4a5568; font-weight: 400; }
         p.intro { font-size: 0.95rem; color: #718096; margin-bottom: 30px; line-height: 1.5; }
 
+
+/* --- RANKING E RESULTADOS --- */
+.ranking-item {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 15px 0;
+    position: relative;
+}
+
+.ranking-item:last-child {
+    border-bottom: none;
+}
+
+/* Destaque para o 1º Lugar */
+.ranking-item.rank-0 {
+    background-color: #f0fff4; /* Fundo levemente verde */
+    border: 2px solid #48bb78;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.badge-rank {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.rank-0 .badge-rank { background: #48bb78; color: white; } /* Ouro/Verde */
+.rank-1 .badge-rank { background: #cbd5e0; color: #4a5568; } /* Prata */
+.rank-2 .badge-rank { background: #ed8936; color: white; } /* Bronze */
+
+.school-address {
+    font-size: 0.85rem;
+    color: #718096;
+    margin-top: 4px;
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+}
+
         /* --- OPÇÕES --- */
         .options-grid { display: flex; flex-direction: column; gap: 12px; }
 
